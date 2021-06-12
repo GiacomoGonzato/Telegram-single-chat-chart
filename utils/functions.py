@@ -1,4 +1,5 @@
 from datetime import date, time, timedelta
+from math import *
 import matplotlib.pyplot as plt
 
 
@@ -8,8 +9,9 @@ def Analysis(data) -> dict:
     # Conteggio totale messaggio
     utenti = dict()
     # Conteggio messaggi giorno per giorno
-    d_giorno_numero_messaggi = daily_messages_dict(data)
     d_utente_giorno_numero_messaggi = dict()
+    # Conteggio messaggi ora per ora
+    d_utente_ora_numero_messaggi = dict()
     for messaggio in data['messages']:
 
         # Ricordo gli utenti e conto quanti messaggi hanno scritto
@@ -26,14 +28,22 @@ def Analysis(data) -> dict:
         else:
             utenti[utente] += 1
 
-        # Messaggi di ogni utente giorno per giorno
         giorno_ora_messaggio = Telegram_from_text_to_date(messaggio['date'])
+        # Messaggi di ogni utente giorno per giorno
         if utente not in d_utente_giorno_numero_messaggi.keys():
-            d_utente_giorno_numero_messaggi[utente] = d_giorno_numero_messaggi
+            d_utente_giorno_numero_messaggi[utente] = daily_messages_dict(data)
         d_utente_giorno_numero_messaggi[utente][giorno_ora_messaggio[0]] += 1
+
+        # Messaggi di ogni utente ora per ora
+        if utente not in d_utente_ora_numero_messaggi.keys():
+            d_utente_ora_numero_messaggi[utente] = hourly_messages_dict()
+        time_messaggio = giorno_ora_messaggio[1]
+        ora_messaggio = time_messaggio.hour
+        d_utente_ora_numero_messaggi[utente][ora_messaggio] += 1
 
     analisi['utenti'] = utenti
     analisi['utenti messaggi al giorno'] = d_utente_giorno_numero_messaggi
+    analisi['utenti messaggi ogni ora'] = d_utente_ora_numero_messaggi
 
     return analisi
 
@@ -85,32 +95,70 @@ def daily_messages_dict(data):
         today = today + t
     return numero_messaggi_giorno
 
-# Stampo e salvo un grafico a barre verticali
+
+# Inizializzo il dizionario del numero di messaggi spedito ogni ora
+def hourly_messages_dict():
+    numero_messaggi_ora = dict()
+    for ora in range(24):
+        numero_messaggi_ora[ora] = 0
+    return numero_messaggi_ora
 
 
-def grafico_verticale():
+# Stampo e salvo un grafico a barre verticali per i giorni
+def grafico_verticale_giorni(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine):
+    size = (len(lista_x)/5, sqrt(len(lista_x)))
+    fig = plt.figure(figsize=size)
+    fig.subplots_adjust(
+        top=0.946,
+        bottom=0.184,
+        left=0.063,
+        right=0.987,
+        hspace=0.2,
+        wspace=0.2
+    )
+    plt.title(titolo_grafico)
+    n = [i for i in range(len(lista_x))]
 
-    fig = plt.figure(figsize=(len(calendario)/5, math.sqrt(len(calendario))))
-    plt.title("Chat/Gruppo: " + nome)
+    plt.ylabel(descrizione_y)
+    plt.xlabel(descrizione_x)
 
-    x = []
-    c = list(calendario.keys())
-    n = []
-    for i in range(len(calendario)):
-        x.append((int(c[i].split("-")[2]),
-                int(c[i].split("-")[1]), int(c[i].split("-")[0])))
-        n.append(i)
+    plt.bar(n, lista_y, width=0.6)
+    plt.xticks(n, lista_x, rotation=90)
 
-    plt.ylabel("Numero di messaggi")
-    plt.xlabel("Data")
+    nome_immagine += ".png"
+    fig.savefig(nome_immagine)
+#    plt.show()
 
-    y = list(calendario.values())
 
-    plt.bar(n, y, width=0.6)
-    plt.xticks(n, x, rotation=90)
+# Stampo e salvo un grafico a barre verticali per le ore
+def grafico_verticale_ore(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine):
+    size = (len(lista_x)/5, sqrt(len(lista_x)))
+    fig = plt.figure(figsize=size)
+    fig.subplots_adjust(
+        top=0.926,
+        bottom=0.127,
+        left=0.129,
+        right=0.969,
+        hspace=0.2,
+        wspace=0.2
+    )
+    plt.title(titolo_grafico)
+    n = [i for i in range(len(lista_x))]
 
-    storico = "Storico_" + nome + "_" + str(flag) + ".png"
+    plt.ylabel(descrizione_y)
+    plt.xlabel(descrizione_x)
 
-    fig.savefig(storico)
+    plt.bar(n, lista_y, width=0.6)
+    plt.xticks(n, lista_x, rotation=90)
 
-    plt.show()
+    nome_immagine += ".png"
+    fig.savefig(nome_immagine)
+#    plt.show()
+
+
+# Dato un dizionario creo due liste (asse_x, asse_y) ordinate
+def ordina_dizionario_to_lista(dizionario, decrescente=False):
+    asse_x = [x for x in dizionario.keys()]
+    asse_x.sort(reverse=decrescente)
+    asse_y = [dizionario[x] for x in asse_x]
+    return (asse_x, asse_y)
