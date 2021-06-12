@@ -1,4 +1,4 @@
-from datetime import date, time, timedelta
+from datetime import date, time, datetime, timedelta
 from math import *
 import matplotlib.pyplot as plt
 
@@ -10,98 +10,121 @@ def Analysis(data) -> dict:
     utenti = dict()
     # Conteggio messaggi giorno per giorno
     d_utente_giorno_numero_messaggi = dict()
-    # Conteggio messaggi ora per ora
+    d_utente_giorno_numero_messaggi['Team'] = daily_messages_dict(data)
+    # Conteggio messaggi ogni ora
     d_utente_ora_numero_messaggi = dict()
+    d_utente_ora_numero_messaggi['Team'] = hourly_messages_dict()
+    # Conteggio messaggi ogni giorno della settimana
+    d_utente_dayweek_numero_messaggi = dict()
+    d_numero_dayweek = numero_dayweek_converter()
+    d_utente_dayweek_numero_messaggi['Team'] = weekly_messages_dict()
     for messaggio in data['messages']:
 
         # Ricordo gli utenti e conto quanti messaggi hanno scritto
-        utente = 'inizializzazione variabile'
+        utente = 'inizializzazione'
         if 'from' in messaggio.keys():
             utente = messaggio['from']
         elif 'actor' in messaggio.keys():
             utente = messaggio['actor']
-        if utente == 'inizializzazione variabile':
-            print('Owner del messaggio sconosciuto')
+        if utente == 'inizializzazione':
+            print('Errore: Owner del messaggio sconosciuto')
             continue
         if utente not in utenti.keys():
             utenti[utente] = 0
-        else:
-            utenti[utente] += 1
+        utenti[utente] += 1
 
         giorno_ora_messaggio = Telegram_from_text_to_date(messaggio['date'])
         # Messaggi di ogni utente giorno per giorno
         if utente not in d_utente_giorno_numero_messaggi.keys():
             d_utente_giorno_numero_messaggi[utente] = daily_messages_dict(data)
-        d_utente_giorno_numero_messaggi[utente][giorno_ora_messaggio[0]] += 1
+        giorno_messaggio = date(giorno_ora_messaggio.year,
+                                giorno_ora_messaggio.month, giorno_ora_messaggio.day)
+        d_utente_giorno_numero_messaggi[utente][giorno_messaggio.__str__(
+        )] += 1
+        d_utente_giorno_numero_messaggi['Team'][giorno_messaggio.__str__(
+        )] += 1
 
-        # Messaggi di ogni utente ora per ora
+        # Messaggi di ogni utente nelle ore
         if utente not in d_utente_ora_numero_messaggi.keys():
             d_utente_ora_numero_messaggi[utente] = hourly_messages_dict()
-        time_messaggio = giorno_ora_messaggio[1]
-        ora_messaggio = time_messaggio.hour
-        d_utente_ora_numero_messaggi[utente][ora_messaggio] += 1
+        time_messaggio = giorno_ora_messaggio.hour
+        d_utente_ora_numero_messaggi[utente][time_messaggio] += 1
+        d_utente_ora_numero_messaggi['Team'][time_messaggio] += 1
+
+        # Messaggi di ogni utente nei giorni della settimana
+        if utente not in d_utente_dayweek_numero_messaggi.keys():
+            d_utente_dayweek_numero_messaggi[utente] = weekly_messages_dict()
+        dayweek_messaggio = giorno_ora_messaggio.weekday()
+        d_utente_dayweek_numero_messaggi[utente][d_numero_dayweek[dayweek_messaggio]] += 1
+        d_utente_dayweek_numero_messaggi['Team'][d_numero_dayweek[dayweek_messaggio]] += 1
 
     analisi['utenti'] = utenti
     analisi['utenti messaggi al giorno'] = d_utente_giorno_numero_messaggi
     analisi['utenti messaggi ogni ora'] = d_utente_ora_numero_messaggi
+    analisi['utenti messaggi dayweek'] = d_utente_dayweek_numero_messaggi
 
     return analisi
 
 
-# Ritorna ((YYYY,MM,GG),(HH,MM,SS)) con classe DATETIME
-def Telegram_from_text_to_date(stringa) -> tuple:
+# Ritorna il giorno e l'ora nella classe datetime
+def Telegram_from_text_to_date(stringa) -> datetime:
     ldata = stringa.split('T')
     lgiorno = ldata[0].split('-')
     lgiorno = [int(x) for x in lgiorno]
     lora = ldata[1].split(':')
     lora = [int(x) for x in lora]
-    day = date(lgiorno[0], lgiorno[1], lgiorno[2])
-    hour = time(lora[0], lora[1], lora[2])
-    return (day, hour)
-
-
-# Utenti della chat e numero delle loro azioni
-def Utenti_chat(data, solo_utenti=False) -> dict:
-    utenti = dict()
-    for messaggio in data['messages']:
-        utente = 'inizializzazione variabile'
-        if 'from' in messaggio.keys():
-            utente = messaggio['from']
-        elif 'actor' in messaggio.keys():
-            utente = messaggio['actor']
-        if utente == 'inizializzazione variabile':
-            print('Owner del messaggio sconosciuto')
-            continue
-        if utente not in utenti.keys():
-            utenti[utente] = 0
-        else:
-            utenti[utente] += 1
-    if solo_utenti:
-        utenti = set(utenti.keys())
-    return utenti
+    day_hour = datetime(lgiorno[0], lgiorno[1], lgiorno[2],
+                        lora[0], lora[1], lora[2])
+    return day_hour
 
 
 # Inizializzo il dizionario del numero di messaggi spedito ogni giorno
-def daily_messages_dict(data):
+def daily_messages_dict(data) -> dict:
     numero_messaggi_giorno = dict()
     first_day = Telegram_from_text_to_date(data['messages'][0]['date'])
     last_day = Telegram_from_text_to_date(data['messages'][-1]['date'])
-    first_day = first_day[0]
-    last_day = last_day[0]
+    first_day = date(first_day.year, first_day.month, first_day.day)
+    last_day = date(last_day.year, last_day.month, last_day.day)
     t = timedelta(days=1)
     today = first_day
     while today <= last_day:
-        numero_messaggi_giorno[today] = 0
+        numero_messaggi_giorno[today.__str__()] = 0
         today = today + t
     return numero_messaggi_giorno
 
 
 # Inizializzo il dizionario del numero di messaggi spedito ogni ora
-def hourly_messages_dict():
+def hourly_messages_dict() -> dict:
     numero_messaggi_ora = dict()
     for ora in range(24):
         numero_messaggi_ora[ora] = 0
     return numero_messaggi_ora
+
+
+# Inizializzo il dizionario del numero di messaggi spedito ogni giorno della settimana
+def weekly_messages_dict() -> dict:
+    numero_messaggi_dayweek = dict()
+    numero_messaggi_dayweek['Lunedì'] = 0
+    numero_messaggi_dayweek['Martedì'] = 0
+    numero_messaggi_dayweek['Mercoledì'] = 0
+    numero_messaggi_dayweek['Giovedì'] = 0
+    numero_messaggi_dayweek['Venerdì'] = 0
+    numero_messaggi_dayweek['Sabato'] = 0
+    numero_messaggi_dayweek['Domenica'] = 0
+    return numero_messaggi_dayweek
+
+
+# Inizializzo il dizionario che converte numero in giorno della settimana
+def numero_dayweek_converter() -> dict:
+    convertitore = dict()
+    convertitore[0] = 'Lunedì'
+    convertitore[1] = 'Martedì'
+    convertitore[2] = 'Mercoledì'
+    convertitore[3] = 'Giovedì'
+    convertitore[4] = 'Venerdì'
+    convertitore[5] = 'Sabato'
+    convertitore[6] = 'Domenica'
+    return convertitore
 
 
 # Stampo e salvo un grafico a barre verticali per i giorni
@@ -127,12 +150,38 @@ def grafico_verticale_giorni(lista_x, descrizione_x, lista_y, descrizione_y, tit
 
     nome_immagine += ".png"
     fig.savefig(nome_immagine)
-#    plt.show()
+    # plt.show()
+    plt.close()
+
+
+# Stampo e salvo un grafico a barre orizzontali della classifica utenti
+def grafico_orizontale_utenti(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine):
+    size = (2 * len(lista_x), len(lista_x))
+    fig = plt.figure(figsize=size)
+    fig.subplots_adjust(
+        top=0.946,
+        bottom=0.086,
+        left=0.161,
+        right=0.987,
+        hspace=1,
+        wspace=1
+    )
+    plt.title(titolo_grafico)
+
+    plt.ylabel(descrizione_y)
+    plt.xlabel(descrizione_x)
+
+    plt.barh(lista_y, lista_x)
+
+    nome_immagine += ".png"
+    fig.savefig(nome_immagine)
+    # plt.show()
+    plt.close()
 
 
 # Stampo e salvo un grafico a barre verticali per le ore
 def grafico_verticale_ore(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine):
-    size = (len(lista_x)/5, sqrt(len(lista_x)))
+    size = (len(lista_x)/4, sqrt(len(lista_x)))
     fig = plt.figure(figsize=size)
     fig.subplots_adjust(
         top=0.926,
@@ -148,17 +197,52 @@ def grafico_verticale_ore(lista_x, descrizione_x, lista_y, descrizione_y, titolo
     plt.ylabel(descrizione_y)
     plt.xlabel(descrizione_x)
 
-    plt.bar(n, lista_y, width=0.6)
+    plt.bar(n, lista_y, width=0.7)
     plt.xticks(n, lista_x, rotation=90)
 
     nome_immagine += ".png"
     fig.savefig(nome_immagine)
-#    plt.show()
+    # plt.show()
+    plt.close()
 
 
-# Dato un dizionario creo due liste (asse_x, asse_y) ordinate
-def ordina_dizionario_to_lista(dizionario, decrescente=False):
+# Stampo e salvo un grafico a barre verticali per i giorni della settimana
+def grafico_verticale_dayweek(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine):
+    size = (2 * len(lista_x), len(lista_x))
+    fig = plt.figure(figsize=size)
+    fig.subplots_adjust(
+        top=0.946,
+        bottom=0.168,
+        left=0.063,
+        right=0.987,
+        hspace=0.2,
+        wspace=0.2
+    )
+    plt.title(titolo_grafico)
+    n = [i for i in range(len(lista_x))]
+
+    plt.ylabel(descrizione_y)
+    plt.xlabel(descrizione_x)
+
+    plt.bar(n, lista_y, width=0.7)
+    plt.xticks(n, lista_x, rotation=90)
+
+    nome_immagine += ".png"
+    fig.savefig(nome_immagine)
+    # plt.show()
+    plt.close()
+
+# Dato un dizionario creo due liste (asse_x, asse_y) ordinate secondo la chiave (False) o valore (True)
+
+
+def ordina_dizionario_to_lista(dizionario, per_valore=False, decrescente=False):
     asse_x = [x for x in dizionario.keys()]
-    asse_x.sort(reverse=decrescente)
+    if not per_valore:
+        asse_x.sort(reverse=decrescente)
+    else:
+        # Criterio di riordinamento
+        def sort_val_dict(x):
+            return dizionario[x]
+        asse_x.sort(key=sort_val_dict, reverse=decrescente)
     asse_y = [dizionario[x] for x in asse_x]
     return (asse_x, asse_y)
