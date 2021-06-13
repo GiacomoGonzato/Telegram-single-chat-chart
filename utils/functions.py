@@ -1,23 +1,35 @@
-from datetime import date, time, datetime, timedelta
+from datetime import date, datetime, timedelta
+from nltk.corpus import stopwords
 from math import *
+import re
 import matplotlib.pyplot as plt
+from numpy import where
 
 
 # Analizzo con un solo loop tutto ciò che posso analizzare nella chat
 def Analysis(data) -> dict:
     analisi = dict()
+    # Nome del Gruppo o della chat
+    nome_chat = 'Team'
     # Conteggio totale messaggio
     utenti = dict()
     # Conteggio messaggi giorno per giorno
     d_utente_giorno_numero_messaggi = dict()
-    d_utente_giorno_numero_messaggi['Team'] = daily_messages_dict(data)
+    d_utente_giorno_numero_messaggi[nome_chat] = daily_messages_dict(data)
     # Conteggio messaggi ogni ora
     d_utente_ora_numero_messaggi = dict()
-    d_utente_ora_numero_messaggi['Team'] = hourly_messages_dict()
+    d_utente_ora_numero_messaggi[nome_chat] = hourly_messages_dict()
     # Conteggio messaggi ogni giorno della settimana
     d_utente_dayweek_numero_messaggi = dict()
     d_numero_dayweek = numero_dayweek_converter()
-    d_utente_dayweek_numero_messaggi['Team'] = weekly_messages_dict()
+    d_utente_dayweek_numero_messaggi[nome_chat] = weekly_messages_dict()
+    # Conto tutte le parole scritte dagli utenti
+    d_utente_parole_numerouso = dict()
+    stop_words_eng = set(stopwords.words("english"))
+    stop_words_ita = set(stopwords.words("italian"))
+    stop_words_private = {"https", "www", "é"}
+    stop_words = stop_words_eng | stop_words_ita | stop_words_private
+    d_utente_parole_numerouso[nome_chat] = dict()
     for messaggio in data['messages']:
 
         # Ricordo gli utenti e conto quanti messaggi hanno scritto
@@ -41,7 +53,7 @@ def Analysis(data) -> dict:
                                 giorno_ora_messaggio.month, giorno_ora_messaggio.day)
         d_utente_giorno_numero_messaggi[utente][giorno_messaggio.__str__(
         )] += 1
-        d_utente_giorno_numero_messaggi['Team'][giorno_messaggio.__str__(
+        d_utente_giorno_numero_messaggi[nome_chat][giorno_messaggio.__str__(
         )] += 1
 
         # Messaggi di ogni utente nelle ore
@@ -49,19 +61,40 @@ def Analysis(data) -> dict:
             d_utente_ora_numero_messaggi[utente] = hourly_messages_dict()
         time_messaggio = giorno_ora_messaggio.hour
         d_utente_ora_numero_messaggi[utente][time_messaggio] += 1
-        d_utente_ora_numero_messaggi['Team'][time_messaggio] += 1
+        d_utente_ora_numero_messaggi[nome_chat][time_messaggio] += 1
 
         # Messaggi di ogni utente nei giorni della settimana
         if utente not in d_utente_dayweek_numero_messaggi.keys():
             d_utente_dayweek_numero_messaggi[utente] = weekly_messages_dict()
         dayweek_messaggio = giorno_ora_messaggio.weekday()
         d_utente_dayweek_numero_messaggi[utente][d_numero_dayweek[dayweek_messaggio]] += 1
-        d_utente_dayweek_numero_messaggi['Team'][d_numero_dayweek[dayweek_messaggio]] += 1
+        d_utente_dayweek_numero_messaggi[nome_chat][d_numero_dayweek[dayweek_messaggio]] += 1
+
+        # Parole di ogni utente mai scritte
+        if 'text' in messaggio.keys():
+            if utente not in d_utente_parole_numerouso:
+                d_utente_parole_numerouso[utente] = dict()
+            messages = good_formatting(messaggio['text'])
+            parole = split_stringa(messages)
+            for parola in set(parole)-{''}:
+                if parola in stop_words:
+                    continue
+                ripetizioni = parole.count(parola)
+                if parola not in d_utente_parole_numerouso[nome_chat].keys():
+                    d_utente_parole_numerouso[utente][parola] = ripetizioni
+                    d_utente_parole_numerouso[nome_chat][parola] = ripetizioni
+                elif parola not in d_utente_parole_numerouso[utente].keys():
+                    d_utente_parole_numerouso[utente][parola] = ripetizioni
+                    d_utente_parole_numerouso[nome_chat][parola] += ripetizioni
+                else:
+                    d_utente_parole_numerouso[utente][parola] += ripetizioni
+                    d_utente_parole_numerouso[nome_chat][parola] += ripetizioni
 
     analisi['utenti'] = utenti
     analisi['utenti messaggi al giorno'] = d_utente_giorno_numero_messaggi
     analisi['utenti messaggi ogni ora'] = d_utente_ora_numero_messaggi
     analisi['utenti messaggi dayweek'] = d_utente_dayweek_numero_messaggi
+    analisi['utenti parole'] = d_utente_parole_numerouso
 
     return analisi
 
@@ -155,7 +188,7 @@ def grafico_verticale_giorni(lista_x, descrizione_x, lista_y, descrizione_y, tit
 
 
 # Stampo e salvo un grafico a barre orizzontali della classifica utenti
-def grafico_orizontale_utenti(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine):
+def grafico_orizzontale_utenti(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine):
     size = (2 * len(lista_x), len(lista_x))
     fig = plt.figure(figsize=size)
     fig.subplots_adjust(
@@ -232,10 +265,34 @@ def grafico_verticale_dayweek(lista_x, descrizione_x, lista_y, descrizione_y, ti
     # plt.show()
     plt.close()
 
+
+# Stampo e salvo un grafico a barre orizzontali della classifica utenti
+def grafico_orizzontale_parole(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine):
+    size = (2 * len(lista_x), len(lista_x))
+    fig = plt.figure(figsize=size)
+    fig.subplots_adjust(
+        top=0.946,
+        bottom=0.086,
+        left=0.068,
+        right=0.987,
+        hspace=0.2,
+        wspace=0.2
+    )
+    plt.title(titolo_grafico)
+
+    plt.ylabel(descrizione_y)
+    plt.xlabel(descrizione_x)
+
+    plt.barh(lista_y, lista_x)
+
+    nome_immagine += ".png"
+    fig.savefig(nome_immagine)
+    # plt.show()
+    plt.close()
+
+
 # Dato un dizionario creo due liste (asse_x, asse_y) ordinate secondo la chiave (False) o valore (True)
-
-
-def ordina_dizionario_to_lista(dizionario, per_valore=False, decrescente=False):
+def ordina_dizionario_to_lista(dizionario, per_valore=False, decrescente=False) -> tuple:
     asse_x = [x for x in dizionario.keys()]
     if not per_valore:
         asse_x.sort(reverse=decrescente)
@@ -246,3 +303,17 @@ def ordina_dizionario_to_lista(dizionario, per_valore=False, decrescente=False):
         asse_x.sort(key=sort_val_dict, reverse=decrescente)
     asse_y = [dizionario[x] for x in asse_x]
     return (asse_x, asse_y)
+
+
+# Data una stringa la divido in tutte le sue parole utili
+def split_stringa(text) -> list:
+    divisione = re.split(r'\W+', text)
+    return divisione
+
+
+# Formatto bene il testo in caso di citazioni
+def good_formatting(messaggio) -> str:
+    if not (type(messaggio) is str):
+        messaggio = " ".join([x if type(x) is str else x['text']
+                              for x in messaggio])
+    return messaggio.lower()
