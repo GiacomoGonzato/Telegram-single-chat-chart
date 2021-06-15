@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 from nltk.corpus import stopwords
 from math import *
 import re
@@ -23,13 +23,17 @@ def Analysis(data) -> dict:
     d_utente_dayweek_numero_messaggi = dict()
     d_numero_dayweek = numero_dayweek_converter()
     d_utente_dayweek_numero_messaggi[nome_chat] = weekly_messages_dict()
-    # Conto tutte le parole scritte dagli utenti
-    d_utente_parole_numerouso = dict()
+    # Inizio analisi parole
     stop_words_eng = set(stopwords.words("english"))
     stop_words_ita = set(stopwords.words("italian"))
-    stop_words_private = {"https", "www", "é"}
+    stop_words_private = {"https", "www", "é", ""}
+    # Conto tutte le parole scritte dagli utenti
     stop_words = stop_words_eng | stop_words_ita | stop_words_private
+    d_utente_parole_numerouso = dict()
     d_utente_parole_numerouso[nome_chat] = dict()
+    # Conto le parole più gettonate di ogni mese
+    d_utente_mese_parole_numerouso = dict()
+    d_utente_mese_parole_numerouso[nome_chat] = monthly_parole_dict(data)
     for messaggio in data['messages']:
 
         # Ricordo gli utenti e conto quanti messaggi hanno scritto
@@ -70,16 +74,20 @@ def Analysis(data) -> dict:
         d_utente_dayweek_numero_messaggi[utente][d_numero_dayweek[dayweek_messaggio]] += 1
         d_utente_dayweek_numero_messaggi[nome_chat][d_numero_dayweek[dayweek_messaggio]] += 1
 
-        # Parole di ogni utente mai scritte
+        # Inizio analisi delle parole
         if 'text' in messaggio.keys():
             if utente not in d_utente_parole_numerouso:
+                d_utente_mese_parole_numerouso[utente] = monthly_parole_dict(
+                    data)
                 d_utente_parole_numerouso[utente] = dict()
             messages = good_formatting(messaggio['text'])
             parole = split_stringa(messages)
-            for parola in set(parole)-{''}:
-                if parola in stop_words:
-                    continue
+            mese_messaggio = date(giorno_messaggio.year,
+                                  giorno_messaggio.month, 1)
+            stringa_mese_messaggio = mese_messaggio.__str__()
+            for parola in set(parole)-stop_words:
                 ripetizioni = parole.count(parola)
+                # Conteggio parole mai scritte da ogni utente
                 if parola not in d_utente_parole_numerouso[nome_chat].keys():
                     d_utente_parole_numerouso[utente][parola] = ripetizioni
                     d_utente_parole_numerouso[nome_chat][parola] = ripetizioni
@@ -89,12 +97,23 @@ def Analysis(data) -> dict:
                 else:
                     d_utente_parole_numerouso[utente][parola] += ripetizioni
                     d_utente_parole_numerouso[nome_chat][parola] += ripetizioni
+                # Aggrego le parole per utenti e mese
+                if parola not in d_utente_mese_parole_numerouso[nome_chat][stringa_mese_messaggio].keys():
+                    d_utente_mese_parole_numerouso[utente][stringa_mese_messaggio][parola] = ripetizioni
+                    d_utente_mese_parole_numerouso[nome_chat][stringa_mese_messaggio][parola] = ripetizioni
+                elif parola not in d_utente_mese_parole_numerouso[utente][stringa_mese_messaggio].keys():
+                    d_utente_mese_parole_numerouso[utente][stringa_mese_messaggio][parola] = ripetizioni
+                    d_utente_mese_parole_numerouso[nome_chat][stringa_mese_messaggio][parola] += ripetizioni
+                else:
+                    d_utente_mese_parole_numerouso[utente][stringa_mese_messaggio][parola] += ripetizioni
+                    d_utente_mese_parole_numerouso[nome_chat][stringa_mese_messaggio][parola] += ripetizioni
 
     analisi['utenti'] = utenti
     analisi['utenti messaggi al giorno'] = d_utente_giorno_numero_messaggi
     analisi['utenti messaggi ogni ora'] = d_utente_ora_numero_messaggi
     analisi['utenti messaggi dayweek'] = d_utente_dayweek_numero_messaggi
     analisi['utenti parole'] = d_utente_parole_numerouso
+    analisi['utenti mese pasole'] = d_utente_mese_parole_numerouso
 
     return analisi
 
@@ -118,11 +137,10 @@ def daily_messages_dict(data) -> dict:
     last_day = Telegram_from_text_to_date(data['messages'][-1]['date'])
     first_day = date(first_day.year, first_day.month, first_day.day)
     last_day = date(last_day.year, last_day.month, last_day.day)
-    t = timedelta(days=1)
-    today = first_day
-    while today <= last_day:
-        numero_messaggi_giorno[today.__str__()] = 0
-        today = today + t
+    giorni = {first_day + timedelta(days=i)
+              for i in range((last_day-first_day).days + 1)}
+    for giorno in giorni:
+        numero_messaggi_giorno[giorno.__str__()] = 0
     return numero_messaggi_giorno
 
 
@@ -158,6 +176,23 @@ def numero_dayweek_converter() -> dict:
     convertitore[5] = 'Sabato'
     convertitore[6] = 'Domenica'
     return convertitore
+
+
+# Inizializzo il dizionario della classifica mensile delle parole più gettonate
+def monthly_parole_dict(data) -> dict:
+    numero_parole_mese = dict()
+    first_day = Telegram_from_text_to_date(data['messages'][0]['date'])
+    last_day = Telegram_from_text_to_date(data['messages'][-1]['date'])
+    first_day = date(first_day.year, first_day.month, 1)
+    last_day = date(last_day.year, last_day.month, last_day.day)
+    mesi = {first_day + timedelta(days=i) for i in range((last_day - first_day).days + 1)
+            if ((first_day + timedelta(days=i)).day == 1)}
+    while last_day.day != 1:
+        last_day += timedelta(days=1)
+    mesi.add(last_day)
+    for mese in mesi:
+        numero_parole_mese[mese.__str__()] = dict()
+    return numero_parole_mese
 
 
 # Stampo e salvo un grafico a barre verticali per i giorni
@@ -329,3 +364,15 @@ def good_formatting(messaggio) -> str:
         messaggio = " ".join([x if type(x) is str else x['text']
                               for x in messaggio])
     return messaggio.lower()
+
+
+# Dato il file json stampo a video tutte le possibili chiavi che posso trovare nei messaggi
+def stampa_chiavi(data) -> None:
+    chiavi = set()
+    s = [{chiave for chiave in messaggio.keys()}
+         for messaggio in data['messages']]
+    for x in s:
+        chiavi = chiavi.union(x)
+    chiavi = sorted([chiave for chiave in chiavi])
+    for x in chiavi:
+        print(x)
