@@ -105,21 +105,3 @@ if True:
     lunghezza_classifica = 30
     descrizione_y = 'Utenti'
     descrizione_x = 'Parole'
-    for utente in analisi['utenti parole'].keys():
-        if len(analisi['utenti parole'][utente]) == 0:
-            continue
-        lista_y, lista_x = ordina_dizionario_to_lista(analisi['utenti parole'][utente],
-                                                      True, True)
-        listac_y = lista_y[:lunghezza_classifica]
-        listac_x = lista_x[:lunghezza_classifica]
-        listac_x.reverse()
-        listac_y.reverse()
-        titolo_grafico = 'Classifica parole di ' + utente
-        nome_immagine = titolo_grafico.replace(' ', '_')
-        grafico_orizzontale_parole(listac_x, descrizione_x, listac_y,
-                                   descrizione_y, titolo_grafico, nome_immagine, 40)
-        print()
-        print(utente)
-        print()
-        for i in range(len(listac_y)):
-            print(i+1, ') ', listac_x[-1-i], ' parola: ', listac_y[-1-i])
