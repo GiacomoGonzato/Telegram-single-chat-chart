@@ -161,7 +161,7 @@ def numero_dayweek_converter() -> dict:
 
 
 # Stampo e salvo un grafico a barre verticali per i giorni
-def grafico_verticale_giorni(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine):
+def grafico_verticale_giorni(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine, char_size=18):
     size = (len(lista_x)/5, sqrt(len(lista_x)))
     fig = plt.figure(figsize=size)
     fig.subplots_adjust(
@@ -172,14 +172,15 @@ def grafico_verticale_giorni(lista_x, descrizione_x, lista_y, descrizione_y, tit
         hspace=0.2,
         wspace=0.2
     )
-    plt.title(titolo_grafico)
     n = [i for i in range(len(lista_x))]
+    tick_char_size = char_size * 0.7
 
-    plt.ylabel(descrizione_y)
-    plt.xlabel(descrizione_x)
-
+    plt.title(titolo_grafico, fontsize=char_size)
+    plt.ylabel(descrizione_y, fontsize=char_size)
+    plt.xlabel(descrizione_x, fontsize=char_size)
     plt.bar(n, lista_y, width=0.6)
-    plt.xticks(n, lista_x, rotation=90)
+    plt.yticks(fontsize=tick_char_size)
+    plt.xticks(n, lista_x, rotation=90, fontsize=10)
 
     nome_immagine += ".png"
     fig.savefig(nome_immagine)
@@ -188,7 +189,7 @@ def grafico_verticale_giorni(lista_x, descrizione_x, lista_y, descrizione_y, tit
 
 
 # Stampo e salvo un grafico a barre orizzontali della classifica utenti
-def grafico_orizzontale_utenti(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine):
+def grafico_orizzontale_utenti(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine, char_size=18):
     size = (2 * len(lista_x), len(lista_x))
     fig = plt.figure(figsize=size)
     fig.subplots_adjust(
@@ -199,10 +200,14 @@ def grafico_orizzontale_utenti(lista_x, descrizione_x, lista_y, descrizione_y, t
         hspace=1,
         wspace=1
     )
-    plt.title(titolo_grafico)
 
-    plt.ylabel(descrizione_y)
-    plt.xlabel(descrizione_x)
+    tick_char_size = char_size * 0.7
+
+    plt.title(titolo_grafico, fontsize=char_size)
+    plt.ylabel(descrizione_y, fontsize=char_size)
+    plt.xlabel(descrizione_x, fontsize=char_size)
+    plt.yticks(fontsize=tick_char_size)
+    plt.xticks(fontsize=tick_char_size)
 
     plt.barh(lista_y, lista_x)
 
@@ -213,7 +218,7 @@ def grafico_orizzontale_utenti(lista_x, descrizione_x, lista_y, descrizione_y, t
 
 
 # Stampo e salvo un grafico a barre verticali per le ore
-def grafico_verticale_ore(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine):
+def grafico_verticale_ore(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine, char_size=18):
     size = (len(lista_x)/4, sqrt(len(lista_x)))
     fig = plt.figure(figsize=size)
     fig.subplots_adjust(
@@ -224,14 +229,15 @@ def grafico_verticale_ore(lista_x, descrizione_x, lista_y, descrizione_y, titolo
         hspace=0.2,
         wspace=0.2
     )
-    plt.title(titolo_grafico)
     n = [i for i in range(len(lista_x))]
+    tick_char_size = char_size * 0.7
 
-    plt.ylabel(descrizione_y)
-    plt.xlabel(descrizione_x)
-
+    plt.title(titolo_grafico, fontsize=char_size)
+    plt.ylabel(descrizione_y, fontsize=char_size)
+    plt.xlabel(descrizione_x, fontsize=char_size)
     plt.bar(n, lista_y, width=0.7)
-    plt.xticks(n, lista_x, rotation=90)
+    plt.yticks(fontsize=tick_char_size)
+    plt.xticks(n, lista_x, rotation=70, fontsize=tick_char_size)
 
     nome_immagine += ".png"
     fig.savefig(nome_immagine)
@@ -240,7 +246,7 @@ def grafico_verticale_ore(lista_x, descrizione_x, lista_y, descrizione_y, titolo
 
 
 # Stampo e salvo un grafico a barre verticali per i giorni della settimana
-def grafico_verticale_dayweek(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine):
+def grafico_verticale_dayweek(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine, char_size=18):
     size = (2 * len(lista_x), len(lista_x))
     fig = plt.figure(figsize=size)
     fig.subplots_adjust(
@@ -251,14 +257,16 @@ def grafico_verticale_dayweek(lista_x, descrizione_x, lista_y, descrizione_y, ti
         hspace=0.2,
         wspace=0.2
     )
-    plt.title(titolo_grafico)
+
     n = [i for i in range(len(lista_x))]
+    tick_char_size = char_size * 0.7
 
-    plt.ylabel(descrizione_y)
-    plt.xlabel(descrizione_x)
-
+    plt.title(titolo_grafico, fontsize=char_size)
+    plt.ylabel(descrizione_y, fontsize=char_size)
+    plt.xlabel(descrizione_x, fontsize=char_size)
     plt.bar(n, lista_y, width=0.7)
-    plt.xticks(n, lista_x, rotation=90)
+    plt.yticks(fontsize=tick_char_size)
+    plt.xticks(n, lista_x, rotation=0, fontsize=tick_char_size)
 
     nome_immagine += ".png"
     fig.savefig(nome_immagine)
@@ -267,7 +275,7 @@ def grafico_verticale_dayweek(lista_x, descrizione_x, lista_y, descrizione_y, ti
 
 
 # Stampo e salvo un grafico a barre orizzontali della classifica utenti
-def grafico_orizzontale_parole(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine):
+def grafico_orizzontale_parole(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine, char_size=18):
     size = (2 * len(lista_x), len(lista_x))
     fig = plt.figure(figsize=size)
     fig.subplots_adjust(
@@ -278,10 +286,14 @@ def grafico_orizzontale_parole(lista_x, descrizione_x, lista_y, descrizione_y, t
         hspace=0.2,
         wspace=0.2
     )
-    plt.title(titolo_grafico)
 
-    plt.ylabel(descrizione_y)
-    plt.xlabel(descrizione_x)
+    tick_char_size = char_size * 0.7
+
+    plt.title(titolo_grafico, fontsize=char_size)
+    plt.ylabel(descrizione_y, fontsize=char_size)
+    plt.xlabel(descrizione_x, fontsize=char_size)
+    plt.yticks(fontsize=tick_char_size)
+    plt.xticks(fontsize=tick_char_size)
 
     plt.barh(lista_y, lista_x)
 

@@ -15,14 +15,14 @@ with open('C:\\Users\\Giacomo\\Desktop\\Python\\Chat_da_analizzare\\result.json'
 analisi = Analysis(data)
 
 # Classifica utenti che hanno mandato più messaggi
-if True:
+if False:
     lista_y, lista_x = ordina_dizionario_to_lista(analisi['utenti'], True)
     descrizione_y = 'Utenti'
     descrizione_x = 'Numero messaggi'
     titolo_grafico = 'Classifica utenti'
     nome_immagine = titolo_grafico.replace(' ', '_')
     grafico_orizzontale_utenti(lista_x, descrizione_x, lista_y,
-                               descrizione_y, titolo_grafico, nome_immagine)
+                               descrizione_y, titolo_grafico, nome_immagine, 18)
     for i in range(len(lista_y)):
         print(i+1, ') ', lista_x[-1-i], ' messaggi scritti da ', lista_y[-1-i])
 
@@ -37,7 +37,7 @@ if False:
         titolo_grafico = 'Messaggi giornalieri di ' + utente
         nome_immagine = titolo_grafico.replace(' ', '_')
         grafico_verticale_giorni(lista_x, descrizione_x, lista_y,
-                                 descrizione_y, titolo_grafico, nome_immagine)
+                                 descrizione_y, titolo_grafico, nome_immagine, 35)
 
 # Grafico messaggi ogni ora
 if False:
@@ -49,7 +49,7 @@ if False:
         titolo_grafico = 'Messaggi orari di ' + utente
         nome_immagine = titolo_grafico.replace(' ', '_')
         grafico_verticale_ore(lista_x, descrizione_x, lista_y,
-                              descrizione_y, titolo_grafico, nome_immagine)
+                              descrizione_y, titolo_grafico, nome_immagine, 16)
 
 
 # Grafico messaggi ogni giorno della settimana
@@ -64,11 +64,11 @@ if False:
         titolo_grafico = 'Messaggi settimanali di ' + utente
         nome_immagine = titolo_grafico.replace(' ', '_')
         grafico_verticale_dayweek(lista_x, descrizione_x, lista_y,
-                                  descrizione_y, titolo_grafico, nome_immagine)
+                                  descrizione_y, titolo_grafico, nome_immagine, 18)
 
 
 # Grafico parole più usate
-if True:
+if False:
     lunghezza_classifica = 20
     descrizione_y = 'Utenti'
     descrizione_x = 'Parole'
@@ -84,7 +84,7 @@ if True:
         titolo_grafico = 'Classifica parole di ' + utente
         nome_immagine = titolo_grafico.replace(' ', '_')
         grafico_orizzontale_parole(listac_x, descrizione_x, listac_y,
-                                   descrizione_y, titolo_grafico, nome_immagine)
+                                   descrizione_y, titolo_grafico, nome_immagine, 40)
         print()
         print(utente)
         print()
