@@ -1,12 +1,14 @@
 import json
-from utils.functions import Analysis, grafico_orizzontale_parole, grafico_orizzontale_utenti, grafico_verticale_dayweek, grafico_verticale_giorni, grafico_verticale_ore, ordina_dizionario_to_lista, stampa_chiavi
+from utils.functions import Analysis, ordina_dizionario_to_lista, stampa_chiavi
+from utils.chart import *
 
 
 # Importo il file della Chat in un Json (dizionario di dizionari)
 with open('C:\\Users\\Giacomo\\Desktop\\Python\\Chat_da_analizzare\\result.json', encoding="utf8") as f:
     data = json.load(f)
 
-# stampa_chiavi(data)
+if False:
+    stampa_chiavi(data)
 
 # Utenti che hanno mai scritto o sono mai stati nel gruppo e quante azioni hanno mai fatto
 # Analisi possibili: -'utenti'                      Nome utente -> numero totale di messaggi inviati
@@ -14,7 +16,7 @@ with open('C:\\Users\\Giacomo\\Desktop\\Python\\Chat_da_analizzare\\result.json'
 #                    -'utenti messaggi ogni ora'    Nome utente -> orario -> numero messaggio inviati in quell'ora
 #                    -'utenti messaggi dayweek'     Nome utente -> giorno settimana -> numero messaggio inviati quel giorno
 #                    -'utenti parole'               Nome utente -> parola -> numero utilizzi
-#                    -'utenti mese pasole'          Nome utente -> mese -> parola -> numero utilizzi
+#                    -'utenti mese parole'          Nome utente -> mese -> parola -> numero utilizzi
 analisi = Analysis(data)
 
 # Classifica utenti che hanno mandato più messaggi
@@ -100,8 +102,20 @@ if False:
 
 # Grafico parole più usate aggregate per mese
 if True:
-    parole_da_graficare = {'caffè', 'umana'}
+    parole_da_graficare = {'af'}
+    utenti_da_plottare = {'Team'}
+    # utenti_da_plottare = {utente for utente in analisi['utenti']}
     parole_da_graficare = {parola.lower() for parola in parole_da_graficare}
-    lunghezza_classifica = 30
-    descrizione_y = 'Utenti'
-    descrizione_x = 'Parole'
+    descrizione_x = 'Mesi'
+    descrizione_y = 'Frequenza di utilizzo'
+    for parola in parole_da_graficare:
+        for utente in utenti_da_plottare:
+            mese_parole_numerouso = analisi['utenti mese parole'][utente]
+            lista_x = sorted([mese for mese in mese_parole_numerouso.keys()])
+            lista_y = [100 * mese_parole_numerouso[mese][parola]/sum([mese_parole_numerouso[mese][parola] for parola in mese_parole_numerouso[mese].keys()])
+                       if parola in mese_parole_numerouso[mese].keys() else 0 for mese in lista_x]
+            numero_parole_scritte = []
+            titolo_grafico = 'Frequenza utilizzo mensile della parola ' + parola + ' per ' + utente
+            nome_immagine = titolo_grafico.replace(' ', '_')
+            grafico_verticale_mesi_parole(lista_x, descrizione_x, lista_y,
+                                          descrizione_y, titolo_grafico, nome_immagine, 75)

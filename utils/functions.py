@@ -3,7 +3,6 @@ from nltk.corpus import stopwords
 from math import *
 import re
 import matplotlib.pyplot as plt
-from numpy import where
 
 
 # Analizzo con un solo loop tutto ciò che posso analizzare nella chat
@@ -55,10 +54,9 @@ def Analysis(data) -> dict:
             d_utente_giorno_numero_messaggi[utente] = daily_messages_dict(data)
         giorno_messaggio = date(giorno_ora_messaggio.year,
                                 giorno_ora_messaggio.month, giorno_ora_messaggio.day)
-        d_utente_giorno_numero_messaggi[utente][giorno_messaggio.__str__(
-        )] += 1
-        d_utente_giorno_numero_messaggi[nome_chat][giorno_messaggio.__str__(
-        )] += 1
+        stringa_giorno_messaggio = giorno_messaggio.__str__()
+        d_utente_giorno_numero_messaggi[utente][stringa_giorno_messaggio] += 1
+        d_utente_giorno_numero_messaggi[nome_chat][stringa_giorno_messaggio] += 1
 
         # Messaggi di ogni utente nelle ore
         if utente not in d_utente_ora_numero_messaggi.keys():
@@ -82,9 +80,7 @@ def Analysis(data) -> dict:
                 d_utente_parole_numerouso[utente] = dict()
             messages = good_formatting(messaggio['text'])
             parole = split_stringa(messages)
-            mese_messaggio = date(giorno_messaggio.year,
-                                  giorno_messaggio.month, 1)
-            stringa_mese_messaggio = mese_messaggio.__str__()
+            stringa_mese_messaggio = stringa_giorno_messaggio[:-3]
             for parola in set(parole)-stop_words:
                 ripetizioni = parole.count(parola)
                 # Conteggio parole mai scritte da ogni utente
@@ -113,7 +109,7 @@ def Analysis(data) -> dict:
     analisi['utenti messaggi ogni ora'] = d_utente_ora_numero_messaggi
     analisi['utenti messaggi dayweek'] = d_utente_dayweek_numero_messaggi
     analisi['utenti parole'] = d_utente_parole_numerouso
-    analisi['utenti mese pasole'] = d_utente_mese_parole_numerouso
+    analisi['utenti mese parole'] = d_utente_mese_parole_numerouso
 
     return analisi
 
@@ -184,158 +180,12 @@ def monthly_parole_dict(data) -> dict:
     first_day = Telegram_from_text_to_date(data['messages'][0]['date'])
     last_day = Telegram_from_text_to_date(data['messages'][-1]['date'])
     first_day = date(first_day.year, first_day.month, 1)
-    last_day = date(last_day.year, last_day.month, last_day.day)
-    mesi = {first_day + timedelta(days=i) for i in range((last_day - first_day).days + 1)
-            if ((first_day + timedelta(days=i)).day == 1)}
-    while last_day.day != 1:
-        last_day += timedelta(days=1)
-    mesi.add(last_day)
-    for mese in mesi:
-        numero_parole_mese[mese.__str__()] = dict()
+    last_day = date(last_day.year, last_day.month, 27)
+    mesi = {(first_day + timedelta(days=i)).__str__()[:-3]
+            for i in range(0, (last_day - first_day).days + 1, 25)}
+    for stringa_mese in mesi:
+        numero_parole_mese[stringa_mese] = dict()
     return numero_parole_mese
-
-
-# Stampo e salvo un grafico a barre verticali per i giorni
-def grafico_verticale_giorni(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine, char_size=18):
-    size = (len(lista_x)/5, sqrt(len(lista_x)))
-    fig = plt.figure(figsize=size)
-    fig.subplots_adjust(
-        top=0.946,
-        bottom=0.184,
-        left=0.063,
-        right=0.987,
-        hspace=0.2,
-        wspace=0.2
-    )
-    n = [i for i in range(len(lista_x))]
-    tick_char_size = char_size * 0.7
-
-    plt.title(titolo_grafico, fontsize=char_size)
-    plt.ylabel(descrizione_y, fontsize=char_size)
-    plt.xlabel(descrizione_x, fontsize=char_size)
-    plt.bar(n, lista_y, width=0.6)
-    plt.yticks(fontsize=tick_char_size)
-    plt.xticks(n, lista_x, rotation=90, fontsize=10)
-
-    nome_immagine += ".png"
-    fig.savefig(nome_immagine)
-    # plt.show()
-    plt.close()
-
-
-# Stampo e salvo un grafico a barre orizzontali della classifica utenti
-def grafico_orizzontale_utenti(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine, char_size=18):
-    size = (2 * len(lista_x), len(lista_x))
-    fig = plt.figure(figsize=size)
-    fig.subplots_adjust(
-        top=0.946,
-        bottom=0.086,
-        left=0.161,
-        right=0.987,
-        hspace=1,
-        wspace=1
-    )
-
-    tick_char_size = char_size * 0.7
-
-    plt.title(titolo_grafico, fontsize=char_size)
-    plt.ylabel(descrizione_y, fontsize=char_size)
-    plt.xlabel(descrizione_x, fontsize=char_size)
-    plt.yticks(fontsize=tick_char_size)
-    plt.xticks(fontsize=tick_char_size)
-
-    plt.barh(lista_y, lista_x)
-
-    nome_immagine += ".png"
-    fig.savefig(nome_immagine)
-    # plt.show()
-    plt.close()
-
-
-# Stampo e salvo un grafico a barre verticali per le ore
-def grafico_verticale_ore(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine, char_size=18):
-    size = (len(lista_x)/4, sqrt(len(lista_x)))
-    fig = plt.figure(figsize=size)
-    fig.subplots_adjust(
-        top=0.926,
-        bottom=0.127,
-        left=0.129,
-        right=0.969,
-        hspace=0.2,
-        wspace=0.2
-    )
-    n = [i for i in range(len(lista_x))]
-    tick_char_size = char_size * 0.7
-
-    plt.title(titolo_grafico, fontsize=char_size)
-    plt.ylabel(descrizione_y, fontsize=char_size)
-    plt.xlabel(descrizione_x, fontsize=char_size)
-    plt.bar(n, lista_y, width=0.7)
-    plt.yticks(fontsize=tick_char_size)
-    plt.xticks(n, lista_x, rotation=70, fontsize=tick_char_size)
-
-    nome_immagine += ".png"
-    fig.savefig(nome_immagine)
-    # plt.show()
-    plt.close()
-
-
-# Stampo e salvo un grafico a barre verticali per i giorni della settimana
-def grafico_verticale_dayweek(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine, char_size=18):
-    size = (2 * len(lista_x), len(lista_x))
-    fig = plt.figure(figsize=size)
-    fig.subplots_adjust(
-        top=0.946,
-        bottom=0.168,
-        left=0.063,
-        right=0.987,
-        hspace=0.2,
-        wspace=0.2
-    )
-
-    n = [i for i in range(len(lista_x))]
-    tick_char_size = char_size * 0.7
-
-    plt.title(titolo_grafico, fontsize=char_size)
-    plt.ylabel(descrizione_y, fontsize=char_size)
-    plt.xlabel(descrizione_x, fontsize=char_size)
-    plt.bar(n, lista_y, width=0.7)
-    plt.yticks(fontsize=tick_char_size)
-    plt.xticks(n, lista_x, rotation=0, fontsize=tick_char_size)
-
-    nome_immagine += ".png"
-    fig.savefig(nome_immagine)
-    # plt.show()
-    plt.close()
-
-
-# Stampo e salvo un grafico a barre orizzontali della classifica utenti
-def grafico_orizzontale_parole(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine, char_size=18):
-    size = (2 * len(lista_x), len(lista_x))
-    fig = plt.figure(figsize=size)
-    fig.subplots_adjust(
-        top=0.946,
-        bottom=0.086,
-        left=0.068,
-        right=0.987,
-        hspace=0.2,
-        wspace=0.2
-    )
-
-    tick_char_size = char_size * 0.7
-
-    plt.title(titolo_grafico, fontsize=char_size)
-    plt.ylabel(descrizione_y, fontsize=char_size)
-    plt.xlabel(descrizione_x, fontsize=char_size)
-    plt.yticks(fontsize=tick_char_size)
-    plt.xticks(fontsize=tick_char_size)
-
-    plt.barh(lista_y, lista_x)
-
-    nome_immagine += ".png"
-    fig.savefig(nome_immagine)
-    # plt.show()
-    plt.close()
 
 
 # Dato un dizionario creo due liste (asse_x, asse_y) ordinate secondo la chiave (False) o valore (True)
