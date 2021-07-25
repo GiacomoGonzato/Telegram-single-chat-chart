@@ -1,8 +1,7 @@
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, timedelta
 from nltk.corpus import stopwords
 from math import *
 import re
-import matplotlib.pyplot as plt
 
 
 # Analizzo con un solo loop tutto ciò che posso analizzare nella chat

@@ -1,5 +1,5 @@
 import json
-from utils.functions import Analysis, ordina_dizionario_to_lista, stampa_chiavi
+from utils.first_aggregation import Analysis, ordina_dizionario_to_lista, stampa_chiavi
 from utils.chart import *
 
 
@@ -73,7 +73,7 @@ if False:
 
 
 # Grafico parole più usate
-if False:
+if True:
     lunghezza_classifica = 30
     descrizione_y = 'Utenti'
     descrizione_x = 'Parole'
@@ -97,25 +97,32 @@ if False:
             print(i+1, ') ', listac_x[-1-i], ' parola: ', listac_y[-1-i])
 
 
-# DA FINIRE. CON QUESTA ANALISI POSSO RICAVARE SIA LA CLASSIFICA DELLE PAROLE PIU' GETTONATE
-# MESE PER MESE CHE UN GRAFICO TEMPORALE MENSILE DELL'UTILIZZO DI DETERMINATE PAROLE
-
 # Grafico parole più usate aggregate per mese
 if True:
-    parole_da_graficare = {'af'}
-    utenti_da_plottare = {'Team'}
-    # utenti_da_plottare = {utente for utente in analisi['utenti']}
+    parole_da_graficare = {'amore', 'cazzo'}
+    utenti_da_plottare = {'Giacomo Gonzato'}
+    # Se l'insieme è vuoto plotto per tutti gli utenti
+    if len(utenti_da_plottare) == 0:
+        utenti_da_plottare = {utente for utente in analisi['utenti'].keys()}
     parole_da_graficare = {parola.lower() for parola in parole_da_graficare}
     descrizione_x = 'Mesi'
     descrizione_y = 'Frequenza di utilizzo'
-    for parola in parole_da_graficare:
-        for utente in utenti_da_plottare:
-            mese_parole_numerouso = analisi['utenti mese parole'][utente]
-            lista_x = sorted([mese for mese in mese_parole_numerouso.keys()])
-            lista_y = [100 * mese_parole_numerouso[mese][parola]/sum([mese_parole_numerouso[mese][parola] for parola in mese_parole_numerouso[mese].keys()])
+    for utente in utenti_da_plottare:
+        mese_parole_numerouso = analisi['utenti mese parole'][utente]
+        lista_x = sorted([mese for mese in mese_parole_numerouso.keys()])
+        d_lists_y = dict()
+        # Faccio il grafico per ogni parola
+        for parola in parole_da_graficare:
+            lista_y = [100 * mese_parole_numerouso[mese][parola]/sum(mese_parole_numerouso[mese].values())
                        if parola in mese_parole_numerouso[mese].keys() else 0 for mese in lista_x]
-            numero_parole_scritte = []
+            d_lists_y[parola] = lista_y
             titolo_grafico = 'Frequenza utilizzo mensile della parola ' + parola + ' per ' + utente
             nome_immagine = titolo_grafico.replace(' ', '_')
             grafico_verticale_mesi_parole(lista_x, descrizione_x, lista_y,
                                           descrizione_y, titolo_grafico, nome_immagine, 75)
+        # Faccio un grafico riassuntivo per tutte le parole
+        if len(parole_da_graficare) >= 2:
+            titolo_grafico = 'Frequenza utilizzo mensile parole per ' + utente
+            nome_immagine = titolo_grafico.replace(' ', '_')
+            grafico_verticale_mesi_parole_riassunto(lista_x, descrizione_x, d_lists_y,
+                                                    descrizione_y, titolo_grafico, nome_immagine, 75)
