@@ -10,7 +10,8 @@ def Analysis(data) -> dict:
     # Nome del Gruppo o della chat
     nome_chat = 'Team'
     # Conteggio totale messaggio
-    utenti = dict()
+    utenti = set()
+    utenti.add(nome_chat)
     # Conteggio messaggi giorno per giorno
     d_utente_giorno_numero_messaggi = dict()
     d_utente_giorno_numero_messaggi[nome_chat] = daily_messages_dict(data)
@@ -34,7 +35,7 @@ def Analysis(data) -> dict:
     d_utente_mese_parole_numerouso[nome_chat] = monthly_parole_dict(data)
     for messaggio in data['messages']:
 
-        # Ricordo gli utenti e conto quanti messaggi hanno scritto
+        # Ricordo gli utenti
         utente = 'inizializzazione'
         if 'from' in messaggio.keys():
             utente = messaggio['from']
@@ -43,9 +44,8 @@ def Analysis(data) -> dict:
         if utente == 'inizializzazione':
             print('Errore: Owner del messaggio sconosciuto')
             continue
-        if utente not in utenti.keys():
-            utenti[utente] = 0
-        utenti[utente] += 1
+        if utente not in utenti:
+            utenti.add(utente)
 
         giorno_ora_messaggio = Telegram_from_text_to_date(messaggio['date'])
         # Messaggi di ogni utente giorno per giorno
@@ -103,7 +103,13 @@ def Analysis(data) -> dict:
                     d_utente_mese_parole_numerouso[utente][stringa_mese_messaggio][parola] += ripetizioni
                     d_utente_mese_parole_numerouso[nome_chat][stringa_mese_messaggio][parola] += ripetizioni
 
-    analisi['utenti'] = utenti
+    # Conto il numero dei messaggi totali scritti da un utente a partire dal numero di messaggi scritti ogni mese
+    giorni = d_utente_giorno_numero_messaggi[nome_chat].keys()
+    d_utente_numero_messaggi = {user: sum((d_utente_giorno_numero_messaggi[user][giorno]
+                                           for giorno in giorni)) for user in utenti}
+
+    # Inserisco tutti i dati nella variabile di output
+    analisi['utenti'] = d_utente_numero_messaggi
     analisi['utenti messaggi al giorno'] = d_utente_giorno_numero_messaggi
     analisi['utenti messaggi ogni ora'] = d_utente_ora_numero_messaggi
     analisi['utenti messaggi dayweek'] = d_utente_dayweek_numero_messaggi
@@ -116,10 +122,8 @@ def Analysis(data) -> dict:
 # Ritorna il giorno e l'ora nella classe datetime
 def Telegram_from_text_to_date(stringa) -> datetime:
     ldata = stringa.split('T')
-    lgiorno = ldata[0].split('-')
-    lgiorno = [int(x) for x in lgiorno]
-    lora = ldata[1].split(':')
-    lora = [int(x) for x in lora]
+    lgiorno = [int(x) for x in ldata[0].split('-')]
+    lora = [int(x) for x in ldata[1].split(':')]
     day_hour = datetime(lgiorno[0], lgiorno[1], lgiorno[2],
                         lora[0], lora[1], lora[2])
     return day_hour
@@ -141,9 +145,7 @@ def daily_messages_dict(data) -> dict:
 
 # Inizializzo il dizionario del numero di messaggi spedito ogni ora
 def hourly_messages_dict() -> dict:
-    numero_messaggi_ora = dict()
-    for ora in range(24):
-        numero_messaggi_ora[ora] = 0
+    numero_messaggi_ora = {ora: 0 for ora in range(24)}
     return numero_messaggi_ora
 
 

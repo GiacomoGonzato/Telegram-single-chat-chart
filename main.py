@@ -73,7 +73,7 @@ if False:
 
 
 # Grafico parole più usate
-if True:
+if False:
     lunghezza_classifica = 30
     descrizione_y = 'Utenti'
     descrizione_x = 'Parole'
@@ -99,8 +99,8 @@ if True:
 
 # Grafico parole più usate aggregate per mese
 if True:
-    parole_da_graficare = {'amore', 'cazzo'}
-    utenti_da_plottare = {'Giacomo Gonzato'}
+    parole_da_graficare = {'amore'}
+    utenti_da_plottare = {'Team'}
     # Se l'insieme è vuoto plotto per tutti gli utenti
     if len(utenti_da_plottare) == 0:
         utenti_da_plottare = {utente for utente in analisi['utenti'].keys()}
