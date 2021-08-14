@@ -207,3 +207,35 @@ def grafico_verticale_mesi_parole_riassunto(lista_x, descrizione_x, d_lists_y, d
     fig.savefig(nome_immagine)
     # plt.show()
     plt.close()
+
+
+# Stampo e salvo un grafico a barre verticali per i mesi delle parole che sia riassuntivo per tutte le parole
+def grafico_mesi_parole_confronto(lista_x, descrizione_x, d_utente_list_y, descrizione_y, titolo_grafico, nome_immagine, parola, char_size=18):
+    size = (2 * len(lista_x), len(lista_x))
+    fig = plt.figure(figsize=size)
+    fig.subplots_adjust(
+        top=0.897,
+        bottom=0.295,
+        left=0.096,
+        right=0.981,
+        hspace=0.2,
+        wspace=0.2
+    )
+    n = [i for i in range(len(lista_x))]
+    tick_char_size = char_size * 0.7
+
+    plt.title(titolo_grafico, fontsize=char_size)
+    plt.ylabel(descrizione_y, fontsize=char_size)
+    plt.xlabel(descrizione_x, fontsize=char_size)
+    for utente in d_utente_list_y.keys():
+        plt.plot(n, d_utente_list_y[utente][parola],
+                 'o-', label=utente, linewidth=8)
+    plt.legend(prop={'size': 70})
+    plt.yticks(fontsize=tick_char_size)
+    plt.xticks(n, lista_x, rotation=90, fontsize=tick_char_size)
+    plt.grid(linestyle='-', linewidth=6)
+
+    nome_immagine += ".png"
+    fig.savefig(nome_immagine)
+    # plt.show()
+    plt.close()
