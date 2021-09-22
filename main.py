@@ -44,6 +44,7 @@ if False:
         grafico_verticale_giorni(lista_x, descrizione_x, lista_y,
                                  descrizione_y, titolo_grafico, nome_immagine, 35)
 
+
 # Grafico messaggi ogni ora
 if False:
     descrizione_x = 'Orario'
@@ -98,8 +99,8 @@ if False:
 
 
 # Grafico parole aggregate per mese
-if True:
-    parole_da_graficare = {'amore'}
+if False:
+    parole_da_graficare = {'amore', 'amo'}
     utenti_da_plottare = {}
     # Se l'insieme è vuoto plotto per tutti gli utenti
     if len(utenti_da_plottare) == 0:

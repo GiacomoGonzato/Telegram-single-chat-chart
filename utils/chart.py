@@ -45,13 +45,14 @@ def grafico_orizzontale_utenti(lista_x, descrizione_x, lista_y, descrizione_y, t
 
     tick_char_size = char_size * 0.7
 
+    plt.grid(linestyle='-', linewidth=3, zorder=0)
     plt.title(titolo_grafico, fontsize=char_size)
     plt.ylabel(descrizione_y, fontsize=char_size)
     plt.xlabel(descrizione_x, fontsize=char_size)
     plt.yticks(fontsize=tick_char_size)
     plt.xticks(fontsize=tick_char_size)
 
-    plt.barh(lista_y, lista_x)
+    plt.barh(lista_y, lista_x, zorder=3)
 
     nome_immagine += ".png"
     fig.savefig(nome_immagine)
@@ -74,10 +75,11 @@ def grafico_verticale_ore(lista_x, descrizione_x, lista_y, descrizione_y, titolo
     n = [i for i in range(len(lista_x))]
     tick_char_size = char_size * 0.7
 
+    plt.grid(linestyle='-', linewidth=3, zorder=0)
     plt.title(titolo_grafico, fontsize=char_size)
     plt.ylabel(descrizione_y, fontsize=char_size)
     plt.xlabel(descrizione_x, fontsize=char_size)
-    plt.bar(n, lista_y, width=0.7)
+    plt.bar(n, lista_y, width=0.7, zorder=3)
     plt.yticks(fontsize=tick_char_size)
     plt.xticks(n, lista_x, rotation=70, fontsize=tick_char_size)
 
@@ -103,10 +105,11 @@ def grafico_verticale_dayweek(lista_x, descrizione_x, lista_y, descrizione_y, ti
     n = [i for i in range(len(lista_x))]
     tick_char_size = char_size * 0.7
 
+    plt.grid(linestyle='-', linewidth=3, zorder=0)
     plt.title(titolo_grafico, fontsize=char_size)
     plt.ylabel(descrizione_y, fontsize=char_size)
     plt.xlabel(descrizione_x, fontsize=char_size)
-    plt.bar(n, lista_y, width=0.7)
+    plt.bar(n, lista_y, width=0.7, zorder=3)
     plt.yticks(fontsize=tick_char_size)
     plt.xticks(n, lista_x, rotation=0, fontsize=tick_char_size)
 
@@ -131,13 +134,14 @@ def grafico_orizzontale_parole(lista_x, descrizione_x, lista_y, descrizione_y, t
 
     tick_char_size = char_size * 0.7
 
+    plt.grid(linestyle='-', linewidth=3, zorder=0)
     plt.title(titolo_grafico, fontsize=char_size)
     plt.ylabel(descrizione_y, fontsize=char_size)
     plt.xlabel(descrizione_x, fontsize=char_size)
     plt.yticks(fontsize=tick_char_size)
     plt.xticks(fontsize=tick_char_size)
 
-    plt.barh(lista_y, lista_x)
+    plt.barh(lista_y, lista_x, zorder=3)
 
     nome_immagine += ".png"
     fig.savefig(nome_immagine)
@@ -160,10 +164,11 @@ def grafico_verticale_mesi_parole(lista_x, descrizione_x, lista_y, descrizione_y
     n = [i for i in range(len(lista_x))]
     tick_char_size = char_size * 0.7
 
+    plt.grid(linestyle='-', linewidth=6, zorder=0)
     plt.title(titolo_grafico, fontsize=char_size)
     plt.ylabel(descrizione_y, fontsize=char_size)
     plt.xlabel(descrizione_x, fontsize=char_size)
-    plt.bar(n, lista_y, width=0.7)
+    plt.bar(n, lista_y, width=0.7, zorder=3)
     plt.yticks(fontsize=tick_char_size)
     plt.xticks(n, lista_x, rotation=90, fontsize=tick_char_size)
 
@@ -191,10 +196,11 @@ def grafico_verticale_mesi_parole_riassunto(lista_x, descrizione_x, d_lists_y, d
     plt.title(titolo_grafico, fontsize=char_size)
     plt.ylabel(descrizione_y, fontsize=char_size)
     plt.xlabel(descrizione_x, fontsize=char_size)
+    plt.grid(linestyle='-', linewidth=6, zorder=0)
     sum_value_list = [fsum([lista[i] for lista in d_lists_y.values()])
                       for i in range(len(lista_x))]
     for parola in d_lists_y.keys():
-        plt.bar(n, sum_value_list, width=0.7, label=parola)
+        plt.bar(n, sum_value_list, width=0.7, label=parola, zorder=3)
         sum_value_list = [somma_precedente - valore for somma_precedente, valore
                           in zip(sum_value_list, d_lists_y[parola])]
     plt.yticks(fontsize=tick_char_size)
@@ -227,13 +233,13 @@ def grafico_mesi_parole_confronto(lista_x, descrizione_x, d_utente_list_y, descr
     plt.title(titolo_grafico, fontsize=char_size)
     plt.ylabel(descrizione_y, fontsize=char_size)
     plt.xlabel(descrizione_x, fontsize=char_size)
+    plt.grid(linestyle='-', linewidth=6, zorder=0)
     for utente in d_utente_list_y.keys():
         plt.plot(n, d_utente_list_y[utente][parola],
-                 'o-', label=utente, linewidth=8)
+                 'o-', label=utente, linewidth=8, zorder=3)
     plt.legend(prop={'size': 70})
     plt.yticks(fontsize=tick_char_size)
     plt.xticks(n, lista_x, rotation=90, fontsize=tick_char_size)
-    plt.grid(linestyle='-', linewidth=6)
 
     nome_immagine += ".png"
     fig.savefig(nome_immagine)
