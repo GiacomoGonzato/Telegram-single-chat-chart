@@ -1,4 +1,5 @@
 from math import *
+from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 
 
@@ -32,7 +33,7 @@ def grafico_verticale_giorni(lista_x, descrizione_x, lista_y, descrizione_y, tit
 
 # Stampo e salvo un grafico a barre orizzontali della classifica utenti
 def grafico_orizzontale_utenti(lista_x, descrizione_x, lista_y, descrizione_y, titolo_grafico, nome_immagine, char_size=18):
-    size = (2 * len(lista_x), len(lista_x))
+    size = (10 * len(lista_x), 5 * len(lista_x))
     fig = plt.figure(figsize=size)
     fig.subplots_adjust(
         top=0.946,
@@ -208,7 +209,7 @@ def grafico_verticale_mesi_parole_riassunto(lista_x, descrizione_x, d_lists_y, d
     if max([abs(x) for x in sum_value_list]) >= 0.001:
         print('ERRORE DI APPROSSIMAZIONE DEL GRAFICO ' +
               nome_immagine + '.png SUPERIORE A 0.001')
-    plt.legend(prop={'size': 80})
+    plt.legend(prop={'size': char_size})
     nome_immagine += ".png"
     fig.savefig(nome_immagine)
     # plt.show()
@@ -237,11 +238,26 @@ def grafico_mesi_parole_confronto(lista_x, descrizione_x, d_utente_list_y, descr
     for utente in d_utente_list_y.keys():
         plt.plot(n, d_utente_list_y[utente][parola],
                  'o-', label=utente, linewidth=8, zorder=3)
-    plt.legend(prop={'size': 70})
+    plt.legend(prop={'size': char_size})
     plt.yticks(fontsize=tick_char_size)
     plt.xticks(n, lista_x, rotation=90, fontsize=tick_char_size)
 
     nome_immagine += ".png"
     fig.savefig(nome_immagine)
-    # plt.show()
+    plt.close()
+
+
+def grafico_wordcloud(dizionario_frequenza, titolo_grafico, nome_immagine, char_size):
+    wc = WordCloud(width=3200, height=1600, background_color='white')
+    wc.generate_from_frequencies(dizionario_frequenza)
+
+    size = (20, 10)
+    plt.figure(figsize=size)
+    plt.title(titolo_grafico, fontsize=char_size)
+    plt.imshow(wc, interpolation="bilinear")
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    nome_immagine += ".png"
+
+    plt.savefig(nome_immagine, face_color=None, bbox_inches='tight')
     plt.close()

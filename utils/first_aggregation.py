@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+from collections import defaultdict
 from nltk.corpus import stopwords
 from math import *
 import re
@@ -80,28 +81,28 @@ def Analysis(data) -> dict:
             messages = good_formatting(messaggio['text'])
             parole = split_stringa(messages)
             stringa_mese_messaggio = stringa_giorno_messaggio[:-3]
-            for parola in set(parole)-stop_words:
-                ripetizioni = parole.count(parola)
+            for parola in parole:
                 # Conteggio parole mai scritte da ogni utente
-                if parola not in d_utente_parole_numerouso[nome_chat].keys():
-                    d_utente_parole_numerouso[utente][parola] = ripetizioni
-                    d_utente_parole_numerouso[nome_chat][parola] = ripetizioni
-                elif parola not in d_utente_parole_numerouso[utente].keys():
-                    d_utente_parole_numerouso[utente][parola] = ripetizioni
-                    d_utente_parole_numerouso[nome_chat][parola] += ripetizioni
-                else:
-                    d_utente_parole_numerouso[utente][parola] += ripetizioni
-                    d_utente_parole_numerouso[nome_chat][parola] += ripetizioni
-                # Aggrego le parole per utenti e mese
-                if parola not in d_utente_mese_parole_numerouso[nome_chat][stringa_mese_messaggio].keys():
-                    d_utente_mese_parole_numerouso[utente][stringa_mese_messaggio][parola] = ripetizioni
-                    d_utente_mese_parole_numerouso[nome_chat][stringa_mese_messaggio][parola] = ripetizioni
-                elif parola not in d_utente_mese_parole_numerouso[utente][stringa_mese_messaggio].keys():
-                    d_utente_mese_parole_numerouso[utente][stringa_mese_messaggio][parola] = ripetizioni
-                    d_utente_mese_parole_numerouso[nome_chat][stringa_mese_messaggio][parola] += ripetizioni
-                else:
-                    d_utente_mese_parole_numerouso[utente][stringa_mese_messaggio][parola] += ripetizioni
-                    d_utente_mese_parole_numerouso[nome_chat][stringa_mese_messaggio][parola] += ripetizioni
+                if parola not in stop_words:
+                    if parola not in d_utente_parole_numerouso[nome_chat].keys():
+                        d_utente_parole_numerouso[utente][parola] = 1
+                        d_utente_parole_numerouso[nome_chat][parola] = 1
+                    elif parola not in d_utente_parole_numerouso[utente].keys():
+                        d_utente_parole_numerouso[utente][parola] = 1
+                        d_utente_parole_numerouso[nome_chat][parola] += 1
+                    else:
+                        d_utente_parole_numerouso[utente][parola] += 1
+                        d_utente_parole_numerouso[nome_chat][parola] += 1
+                    # Aggrego le parole per utenti e mese
+                    if parola not in d_utente_mese_parole_numerouso[nome_chat][stringa_mese_messaggio].keys():
+                        d_utente_mese_parole_numerouso[utente][stringa_mese_messaggio][parola] = 1
+                        d_utente_mese_parole_numerouso[nome_chat][stringa_mese_messaggio][parola] = 1
+                    elif parola not in d_utente_mese_parole_numerouso[utente][stringa_mese_messaggio].keys():
+                        d_utente_mese_parole_numerouso[utente][stringa_mese_messaggio][parola] = 1
+                        d_utente_mese_parole_numerouso[nome_chat][stringa_mese_messaggio][parola] += 1
+                    else:
+                        d_utente_mese_parole_numerouso[utente][stringa_mese_messaggio][parola] += 1
+                        d_utente_mese_parole_numerouso[nome_chat][stringa_mese_messaggio][parola] += 1
 
     # Conto il numero dei messaggi totali scritti da un utente a partire dal numero di messaggi scritti ogni mese
     giorni = d_utente_giorno_numero_messaggi[nome_chat].keys()
@@ -218,12 +219,18 @@ def good_formatting(messaggio) -> str:
 
 
 # Dato il file json stampo a video tutte le possibili chiavi che posso trovare nei messaggi
+# con percentuale di ricorrenza
 def stampa_chiavi(data) -> None:
     chiavi = set()
     s = [{chiave for chiave in messaggio.keys()}
          for messaggio in data['messages']]
-    for x in s:
-        chiavi = chiavi.union(x)
-    chiavi = sorted([chiave for chiave in chiavi])
-    for x in chiavi:
-        print(x)
+    chiavi = set().union(*s)
+    defdic = defaultdict(int)
+    for row in s:
+        for x in row:
+            defdic[x] += 1
+    chiavi = sorted(chiavi)
+    ricorrenza = sorted([[(defdic[x] * 100 / len(s)), x] for x in chiavi],
+                        key=lambda x: x[0]*-1)
+    for x in ricorrenza:
+        print("{:.5f}".format(x[0]), '\t', x[1])
